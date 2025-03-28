@@ -1,0 +1,204 @@
+<html>
+    <head>
+        <style>
+            body {
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+                background-color: rgb(23, 4, 48);
+            }
+
+            .subbody {
+                padding: 10px 10px 10px 10px;
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+                overflow: hidden;
+            }
+
+            .id-header {
+                display: inline;
+                margin: 15px;
+                vertical-align: middle;
+                flex-grow: 1;
+                text-align: center;
+                width: 60%;
+                color: rgb(178, 176, 184);
+                font-size: 50px;
+            }
+
+            .open-button {
+                text-align: center;
+                padding-bottom: 10px;
+                width: 100%;
+            }
+
+            .nav-button {
+                width: 15%;
+                font-size: 50px;
+                background-color:lightblue;
+                border-color: mediumslateblue
+            }
+
+            .nav-bar {
+                width: 100%;
+                display: flex;
+                margin-bottom: 10px;
+            }
+
+            .output {
+                flex-grow: 1;
+                text-align: center;
+                display: block;
+                align-content: center;
+                white-space: pre-line;
+                color: white;
+                font-size: 40px;
+                overflow: scroll;
+            }
+
+            .fade-in-text {
+                animation: fadeIn 5s;
+                -webkit-animation: fadeIn 5s;
+                -moz-animation: fadeIn 5s;
+                -o-animation: fadeIn 5s;
+                -ms-animation: fadeIn 5s;
+            }
+
+            @keyframes fadeIn {
+                0% { opacity: 0; }
+                100% { opacity: 1; }
+            }
+
+            @-moz-keyframes fadeIn {
+                0% { opacity: 0; }
+                100% { opacity: 1; }
+            }
+
+            @-webkit-keyframes fadeIn {
+                0% { opacity: 0; }
+                100% { opacity: 1; }
+            }
+
+            @-o-keyframes fadeIn {
+                0% { opacity: 0; }
+                100% { opacity: 1; }
+            }
+
+            @-ms-keyframes fadeIn {
+                0% { opacity: 0; }
+                100% { opacity: 1; }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="subbody">
+            <input id="open-button" class="open-button" type="file"/>
+            <span class="nav-bar paddy"><button class="nav-button" id="nav-button-left">&lt;</button><h1 id="id-header" class="id-header">#1</h1><button class="nav-button" id="nav-button-right">&gt;</button></span>
+            <div id="value-output" class="output fade-in-text">
+                (Missing data?)
+            </div>
+        </div>
+    </body>
+</html>
+<script>
+
+    var output = document.getElementById("value-output");
+    var lButton = document.getElementById("nav-button-left");
+    var rButton = document.getElementById("nav-button-right");
+    var openButton = document.getElementById("open-button");
+    var idElement = document.getElementById("id-header");
+    var idInput = document.createElement("input");
+    var index = 1; // matches ID, not array index
+    var count = 0;
+    var editMode = false;
+    var jsonRep = {}; // ID is key, text is value
+    
+    openButton.addEventListener("change", (e) => {
+        var file = e.target.files[0];
+        if (!file) {
+            throw "Missing file.";
+        }
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var contents = e.target.result;
+            // var lines = contents.split("\n");
+            var id;
+            // 1 is first index, since 0 is column names
+            // for (var i = 1; i < lines.length; i++) {
+            //     var line = lines[i];
+            //     var value;
+            //     if (line && line.length > 0) {
+            //         var fci = line.indexOf(","); // first comma index
+            //         var parsed = parseInt(line.substring(0, fci));
+            //         if (parsed != NaN && fci > -1 && fci < 5) {
+            //             id = parsed + "";
+            //             if (i == 1) {
+            //                 index = parseInt(id);
+            //             }
+            //             count++;
+            //         } else {
+            //             fci = -1;
+            //         }
+            //         value = line.substring(fci+1);
+            //         if (jsonRep.hasOwnProperty(id)) {
+            //             jsonRep[id] = jsonRep[id] + "\n\n" + value;
+            //         } else {
+            //             jsonRep[id] = value;
+            //         }
+            //     }
+            // }
+            var lines = contents.split(/\r\n\d+?,/);
+            for (var i = 1; i < lines.length; i++) {
+                jsonRep[i + ""] = lines[i];
+            }
+            count = lines.length;
+            openButton.outerHTML = "";
+            index = 6; // dev
+            updateOutput();
+        };
+        reader.readAsText(file);
+    });
+
+    function updateOutput() {
+        output.animate([{opacity: 0}, {opacity: 100}], {duration: 1000});
+        idElement.innerHTML = "#" + index;
+        output.innerHTML = jsonRep[index + ""];
+    }
+
+    function submitEdit() {
+        editMode = false;
+        index = parseInt(idElement.getElementsByTagName("input")[0].value);
+        idElement.innerHTML = "#" + (index);
+        updateOutput();
+    }
+
+    document.addEventListener("keydown", function(e) {
+        if (editMode && e.keyCode == 13) {
+            submitEdit();
+        }
+    })
+
+    lButton.addEventListener("click", (e) => {
+        index -= 1;
+        if (index < 1) index = count;
+        updateOutput();
+    });
+
+    rButton.addEventListener("click", (e) => {
+        index += 1;
+        if (index > count) index = 1;
+        updateOutput();
+    });
+
+    idElement.addEventListener("click", (e) => {
+        if (!editMode) {
+            editMode = true;
+            idInput.value = index;
+            idElement.innerHTML = idInput.outerHTML;
+        }
+    });
+
+</script>
